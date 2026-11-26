@@ -1,10 +1,16 @@
 package Vistas;
 
+import Controlador.GestorAudio;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.io.InputStream;
 
-public class PanelBienvenida extends JPanel {
+public class    PanelBienvenida extends JPanel {
+
+    //Fuentes
+    private Font fuentePixel;
 
     // Dimensiones del panel
     private static final int ANCHO = 770;
@@ -33,11 +39,14 @@ public class PanelBienvenida extends JPanel {
         setLayout(null);
 
         cargarFondo();
+        cargarFuente();
 
         oso = new Oso(115, 260);
 
         crearBotones();
         iniciarAnimacion();
+        // Arranca la música del menú en su hilo
+        GestorAudio.getInstancia().reproducirMusica("MENU", -5.0f);
     }
 
     // Cargar imagen de fondo
@@ -51,6 +60,25 @@ public class PanelBienvenida extends JPanel {
             fondo = new ImageIcon(ruta).getImage();
         } else {
             System.out.println("No se encontró la imagen de fondo");
+        }
+    }
+
+    // Cargar fuente personalizada
+    private void cargarFuente() {
+        try {
+            InputStream is = getClass().getResourceAsStream(
+                    "/resources/fonts/PixelifySans-VariableFont_wght.ttf"
+            );
+            if (is != null) {
+                fuentePixel = Font.createFont(Font.TRUETYPE_FONT, is);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(fuentePixel);
+            } else {
+                System.out.println("No se encontró la fuente");
+                fuentePixel = new Font("SansSerif", Font.BOLD, 14);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            fuentePixel = new Font("SansSerif", Font.BOLD, 14);
         }
     }
 
@@ -233,7 +261,7 @@ public class PanelBienvenida extends JPanel {
         dibujarTextoCentrado(
                 dibujo,
                 "PÁRAMO",
-                new Font("Serif", Font.BOLD, 68),
+                fuentePixel.deriveFont(Font.BOLD, 68f),
                 CREMA,
                 119,
                 4
@@ -330,6 +358,7 @@ public class PanelBienvenida extends JPanel {
 
     public JButton getBtnIniciar() {
         return btnIniciar;
+        
     }
 
     public JButton getBtnInstrucciones() {

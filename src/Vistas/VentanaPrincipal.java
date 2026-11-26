@@ -1,5 +1,7 @@
 package Vistas;
 
+import Controlador.GestorAudio;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
@@ -7,6 +9,8 @@ import java.net.URL;
 public class VentanaPrincipal extends JFrame {
 
     private Image logoUAM;
+    private PanelBienvenida panelBienvenida;
+    private PanelJuego panelJuego;
 
     public VentanaPrincipal() {
 
@@ -18,7 +22,9 @@ public class VentanaPrincipal extends JFrame {
         cargarLogo();
 
         // Panel de bienvenida
-        add(new PanelBienvenida(), BorderLayout.CENTER);
+        panelBienvenida = new PanelBienvenida();
+        panelBienvenida.getBtnIniciar().addActionListener(e -> iniciarJuego());
+        add(panelBienvenida, BorderLayout.CENTER);
 
         // Panel inferior de créditos
         add(crearPanelCreditos(), BorderLayout.SOUTH);
@@ -197,4 +203,25 @@ public class VentanaPrincipal extends JFrame {
 
         return panel;
     }
+    private void iniciarJuego() {
+        // 0. Reproduce el efecto de iniciar y cambia la música de fondo en su hilo
+        GestorAudio.getInstancia().reproducirEfecto("INICIAR");
+        GestorAudio.getInstancia().reproducirMusica("GAMEPLAY", -6.0f);
+
+        // 1. Detiene el timer del menú para liberar recursos
+        panelBienvenida.detenerAnimacion();
+
+        // 2. Quita el panel de bienvenida del centro y pone el panel del juego
+        remove(panelBienvenida);
+        panelJuego = new PanelJuego();
+        add(panelJuego, BorderLayout.CENTER);
+
+        // 3. Refresca la ventana
+        revalidate();
+        repaint();
+
+        panelJuego.requestFocusInWindow();
+    }
+
+
 }

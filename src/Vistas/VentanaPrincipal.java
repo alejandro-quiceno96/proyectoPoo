@@ -7,6 +7,8 @@ import java.net.URL;
 public class VentanaPrincipal extends JFrame {
 
     private Image logoUAM;
+    private PanelBienvenida panelBienvenida;
+    private PanelJuego panelJuego;
 
     public VentanaPrincipal() {
 
@@ -18,7 +20,9 @@ public class VentanaPrincipal extends JFrame {
         cargarLogo();
 
         // Panel de bienvenida
-        add(new PanelBienvenida(), BorderLayout.CENTER);
+        panelBienvenida = new PanelBienvenida();
+        panelBienvenida.getBtnIniciar().addActionListener(e -> iniciarJuego());
+        add(panelBienvenida, BorderLayout.CENTER);
 
         // Panel inferior de créditos
         add(crearPanelCreditos(), BorderLayout.SOUTH);
@@ -197,4 +201,21 @@ public class VentanaPrincipal extends JFrame {
 
         return panel;
     }
+    private void iniciarJuego() {
+        // 1. Detiene el timer del menú para liberar recursos
+        panelBienvenida.detenerAnimacion();
+
+        // 2. Quita el panel de bienvenida del centro y pone el panel del juego
+        remove(panelBienvenida);
+        panelJuego = new PanelJuego();
+        add(panelJuego, BorderLayout.CENTER);
+
+        // 3. Refresca la ventana
+        revalidate();
+        repaint();
+
+        // 4. ¡Clave! Da el foco al panel del juego para que funcionen WASD y las flechas
+        panelJuego.requestFocusInWindow();
+    }
+
 }

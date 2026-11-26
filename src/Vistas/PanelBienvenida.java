@@ -1,5 +1,7 @@
 package Vistas;
 
+import Controlador.GestorAudio;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
@@ -43,6 +45,8 @@ public class    PanelBienvenida extends JPanel {
 
         crearBotones();
         iniciarAnimacion();
+        // Arranca la música del menú en su hilo
+        GestorAudio.getInstancia().reproducirMusica("MENU", -5.0f);
     }
 
     // Cargar imagen de fondo

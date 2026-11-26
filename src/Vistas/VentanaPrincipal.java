@@ -1,5 +1,7 @@
 package Vistas;
 
+import Controlador.GestorAudio;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
@@ -202,6 +204,10 @@ public class VentanaPrincipal extends JFrame {
         return panel;
     }
     private void iniciarJuego() {
+        // 0. Reproduce el efecto de iniciar y cambia la música de fondo en su hilo
+        GestorAudio.getInstancia().reproducirEfecto("INICIAR");
+        GestorAudio.getInstancia().reproducirMusica("GAMEPLAY", -6.0f);
+
         // 1. Detiene el timer del menú para liberar recursos
         panelBienvenida.detenerAnimacion();
 
@@ -214,8 +220,8 @@ public class VentanaPrincipal extends JFrame {
         revalidate();
         repaint();
 
-        // 4. ¡Clave! Da el foco al panel del juego para que funcionen WASD y las flechas
         panelJuego.requestFocusInWindow();
     }
+
 
 }

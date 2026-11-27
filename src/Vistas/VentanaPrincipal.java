@@ -11,6 +11,7 @@ public class VentanaPrincipal extends JFrame {
     private Image logoUAM;
     private PanelBienvenida panelBienvenida;
     private PanelJuego panelJuego;
+    private PanelInstrucciones panelInstrucciones;
 
     public VentanaPrincipal() {
 
@@ -24,7 +25,12 @@ public class VentanaPrincipal extends JFrame {
         // Panel de bienvenida
         panelBienvenida = new PanelBienvenida();
         panelBienvenida.getBtnIniciar().addActionListener(e -> iniciarJuego());
+        panelBienvenida.getBtnInstrucciones().addActionListener(e -> mostrarInstrucciones());
         add(panelBienvenida, BorderLayout.CENTER);
+
+        // Panel de instrucciones (se muestra al presionar INSTRUCCIONES)
+        panelInstrucciones = new PanelInstrucciones();
+        panelInstrucciones.getBtnVolver().addActionListener(e -> volverAlMenu());
 
         // Panel inferior de créditos
         add(crearPanelCreditos(), BorderLayout.SOUTH);
@@ -221,6 +227,34 @@ public class VentanaPrincipal extends JFrame {
         repaint();
 
         panelJuego.requestFocusInWindow();
+    }
+
+    // Cambia el panel de bienvenida por el de instrucciones
+    private void mostrarInstrucciones() {
+
+        GestorAudio.getInstancia().reproducirEfecto("BOTON");
+
+        panelBienvenida.detenerAnimacion();
+
+        remove(panelBienvenida);
+        add(panelInstrucciones, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    // Regresa del panel de instrucciones al menú principal
+    private void volverAlMenu() {
+
+        GestorAudio.getInstancia().reproducirEfecto("BOTON");
+
+        remove(panelInstrucciones);
+        add(panelBienvenida, BorderLayout.CENTER);
+
+        panelBienvenida.reanudarAnimacion();
+
+        revalidate();
+        repaint();
     }
 
 

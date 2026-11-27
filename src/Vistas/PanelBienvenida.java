@@ -368,4 +368,8 @@ public class    PanelBienvenida extends JPanel {
     public void detenerAnimacion() {
         timer.stop();
     }
+
+    public void reanudarAnimacion() {
+        timer.start();
+    }
 }

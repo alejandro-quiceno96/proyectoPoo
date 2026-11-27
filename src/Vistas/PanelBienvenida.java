@@ -18,7 +18,7 @@ public class    PanelBienvenida extends JPanel {
 
     // Dimensiones de los botones
     private static final int ANCHO_BOTON = 260;
-    private static final int ALTO_BOTON = 48;
+    private static final int ALTO_BOTON = 42;
 
     // Paleta de colores
     private static final Color DORADO = new Color(234, 195, 68);
@@ -32,6 +32,8 @@ public class    PanelBienvenida extends JPanel {
 
     private JButton btnIniciar;
     private JButton btnInstrucciones;
+    private JButton btnZonas;
+    private JButton btnMusica;
 
     public PanelBienvenida() {
 
@@ -85,14 +87,31 @@ public class    PanelBienvenida extends JPanel {
     // Crear botones del menú
     private void crearBotones() {
 
-        btnIniciar = crearBoton("INICIAR", DORADO, 185);
+        btnIniciar = crearBoton("INICIAR", DORADO, 177);
 
         btnInstrucciones = crearBoton(
-                "INSTRUCCIONES", BLANCO, 246
+                "INSTRUCCIONES", BLANCO, 226
+        );
+
+        btnZonas = crearBoton(
+                "ZONAS CONTAMINADAS", new Color(150, 205, 245), 275
         );
 
         add(btnIniciar);
         add(btnInstrucciones);
+        add(btnZonas);
+
+        // Botón pequeño para prender o apagar la música
+        btnMusica = new JButton("MÚSICA: SÍ");
+        btnMusica.setFont(new Font("SansSerif", Font.BOLD, 12));
+        btnMusica.setBackground(new Color(16, 41, 30));
+        btnMusica.setForeground(DORADO);
+        btnMusica.setOpaque(true);
+        btnMusica.setBorderPainted(false);
+        btnMusica.setFocusPainted(false);
+        btnMusica.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnMusica.setBounds(ANCHO - 130, 10, 120, 28);
+        add(btnMusica);
     }
 
     // Método reutilizable para crear botones
@@ -365,7 +384,19 @@ public class    PanelBienvenida extends JPanel {
         return btnInstrucciones;
     }
 
+    public JButton getBtnZonas() {
+        return btnZonas;
+    }
+
+    public JButton getBtnMusica() {
+        return btnMusica;
+    }
+
     public void detenerAnimacion() {
         timer.stop();
+    }
+
+    public void reanudarAnimacion() {
+        timer.start();
     }
 }

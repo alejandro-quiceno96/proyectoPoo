@@ -11,6 +11,12 @@ public class VentanaPrincipal extends JFrame {
     private Image logoUAM;
     private PanelBienvenida panelBienvenida;
     private PanelJuego panelJuego;
+    private PanelInstrucciones panelInstrucciones;
+    private PanelZonas panelZonas;
+
+    // Para prender y apagar la música
+    private boolean musicaActiva = true;
+    private boolean enJuego = false;
 
     public VentanaPrincipal() {
 
@@ -24,7 +30,18 @@ public class VentanaPrincipal extends JFrame {
         // Panel de bienvenida
         panelBienvenida = new PanelBienvenida();
         panelBienvenida.getBtnIniciar().addActionListener(e -> iniciarJuego());
+        panelBienvenida.getBtnInstrucciones().addActionListener(e -> mostrarInstrucciones());
+        panelBienvenida.getBtnZonas().addActionListener(e -> mostrarZonasDesdeMenu());
+        panelBienvenida.getBtnMusica().addActionListener(e -> alternarMusica());
         add(panelBienvenida, BorderLayout.CENTER);
+
+        // Panel de instrucciones (se muestra al presionar INSTRUCCIONES)
+        panelInstrucciones = new PanelInstrucciones();
+        panelInstrucciones.getBtnVolver().addActionListener(e -> volverAlMenu());
+
+        // Panel de zonas contaminadas (se limpian con las gotas recogidas)
+        panelZonas = new PanelZonas();
+        panelZonas.getBtnVolver().addActionListener(e -> volverDeZonas());
 
         // Panel inferior de créditos
         add(crearPanelCreditos(), BorderLayout.SOUTH);
@@ -206,7 +223,10 @@ public class VentanaPrincipal extends JFrame {
     private void iniciarJuego() {
         // 0. Reproduce el efecto de iniciar y cambia la música de fondo en su hilo
         GestorAudio.getInstancia().reproducirEfecto("INICIAR");
-        GestorAudio.getInstancia().reproducirMusica("GAMEPLAY", -6.0f);
+        if (musicaActiva) {
+            GestorAudio.getInstancia().reproducirMusica("GAMEPLAY", -6.0f);
+        }
+        enJuego = true;
 
         // 1. Detiene el timer del menú para liberar recursos
         panelBienvenida.detenerAnimacion();
@@ -214,6 +234,11 @@ public class VentanaPrincipal extends JFrame {
         // 2. Quita el panel de bienvenida del centro y pone el panel del juego
         remove(panelBienvenida);
         panelJuego = new PanelJuego();
+        panelJuego.getBtnReintentar().addActionListener(e -> reintentarJuego());
+        panelJuego.getBtnMenu().addActionListener(e -> volverAlMenuDesdeJuego());
+        panelJuego.getBtnZonas().addActionListener(e -> mostrarZonasDesdeJuego());
+        panelJuego.getBtnMusica().addActionListener(e -> alternarMusica());
+        actualizarTextoMusica();
         add(panelJuego, BorderLayout.CENTER);
 
         // 3. Refresca la ventana
@@ -221,6 +246,121 @@ public class VentanaPrincipal extends JFrame {
         repaint();
 
         panelJuego.requestFocusInWindow();
+    }
+
+    // Cambia el panel de bienvenida por el de instrucciones
+    private void mostrarInstrucciones() {
+
+        GestorAudio.getInstancia().reproducirEfecto("BOTON");
+
+        panelBienvenida.detenerAnimacion();
+
+        remove(panelBienvenida);
+        add(panelInstrucciones, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    // Regresa del panel de instrucciones al menú principal
+    private void volverAlMenu() {
+
+        GestorAudio.getInstancia().reproducirEfecto("BOTON");
+
+        remove(panelInstrucciones);
+        add(panelBienvenida, BorderLayout.CENTER);
+
+        panelBienvenida.reanudarAnimacion();
+
+        revalidate();
+        repaint();
+    }
+
+    // Botón "Jugar de nuevo" de la pantalla final
+    private void reintentarJuego() {
+
+        panelJuego.reiniciar();
+    }
+
+    // Botón "Menú" de la pantalla final
+    private void volverAlMenuDesdeJuego() {
+
+        enJuego = false;
+        panelJuego.detenerJuego();
+        remove(panelJuego);
+        add(panelBienvenida, BorderLayout.CENTER);
+
+        panelBienvenida.reanudarAnimacion();
+
+        revalidate();
+        repaint();
+    }
+
+    // Botón "Zonas contaminadas" del menú
+    private void mostrarZonasDesdeMenu() {
+
+        panelBienvenida.detenerAnimacion();
+        remove(panelBienvenida);
+
+        panelZonas.actualizar();
+        add(panelZonas, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    // Botón "Zonas" de la pantalla final del juego
+    private void mostrarZonasDesdeJuego() {
+
+        enJuego = false;
+        panelJuego.detenerJuego();
+        remove(panelJuego);
+
+        panelZonas.actualizar();
+        add(panelZonas, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    // Desde las zonas siempre se vuelve al menú
+    private void volverDeZonas() {
+
+        remove(panelZonas);
+        add(panelBienvenida, BorderLayout.CENTER);
+
+        panelBienvenida.reanudarAnimacion();
+
+        revalidate();
+        repaint();
+    }
+
+    // Prende o apaga la música usando el GestorAudio
+    private void alternarMusica() {
+
+        musicaActiva = !musicaActiva;
+
+        if (musicaActiva) {
+            if (enJuego) {
+                GestorAudio.getInstancia().reproducirMusica("GAMEPLAY", -6.0f);
+            } else {
+                GestorAudio.getInstancia().reproducirMusica("MENU", -5.0f);
+            }
+        } else {
+            GestorAudio.getInstancia().detenerMusica();
+        }
+
+        actualizarTextoMusica();
+    }
+
+    private void actualizarTextoMusica() {
+
+        String texto = musicaActiva ? "MÚSICA: SÍ" : "MÚSICA: NO";
+
+        panelBienvenida.getBtnMusica().setText(texto);
+        if (panelJuego != null) {
+            panelJuego.getBtnMusica().setText(texto);
+        }
     }
 
 

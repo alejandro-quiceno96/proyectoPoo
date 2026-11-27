@@ -31,6 +31,15 @@ public class Historial {
         }
     }
 
+    // Deja el historial vacío (para empezar el juego de cero)
+    public static void borrarTodo(){
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARCHIVO))){
+            oos.writeObject(new ArrayList<Jugador>());
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
     public static List<Jugador> getTop3(){
         return leerTodos().stream()
                 .sorted((j1, j2) -> Integer.compare(j2.getPuntaje(), j1.getPuntaje()))

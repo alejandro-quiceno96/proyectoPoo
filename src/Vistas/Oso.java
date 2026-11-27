@@ -13,9 +13,6 @@
         // Velocidad de desplazamiento
         private int velocidad = 1;
 
-        // Velocidad de juego
-        private int velocidadJuego = 3;
-
         // Control de los fotogramas
         private int fotograma = 0;
         private int contador = 0;
@@ -43,8 +40,21 @@
         private enum Estado {
             CAMINAR_DERECHA,
             CAMINAR_IZQUIERDA,
-            INTRO
+            INTRO,
+            AGACHADO,
+            CONDOR,
+            MUERTO
         }
+
+        // Animación cuando el oso pierde todas las vidas
+        private Image[] spritesMuerte = new Image[8];
+        private int tiempoMuerte = 0;
+
+        // Animación del cóndor: primero despega y luego aletea
+        private Image[] spritesDespegue = new Image[5];
+        private Image[] spritesVuelo = new Image[8];
+        private int aleteo = 0;
+        private final int TAMANO_CONDOR = 115;
 
         private Estado estado = Estado.CAMINAR_DERECHA;
 
@@ -81,6 +91,25 @@
 
                 spritesIntro[i] = cargarImagen(
                         "/resources/images/Oso/Intro/" + nombre
+                );
+            }
+
+            // Animación del cóndor
+            for (int i = 0; i < spritesDespegue.length; i++) {
+                spritesDespegue[i] = cargarImagen(
+                        "/resources/images/Condor/despegue_" + (i + 1) + ".png"
+                );
+            }
+            for (int i = 0; i < spritesVuelo.length; i++) {
+                spritesVuelo[i] = cargarImagen(
+                        "/resources/images/Condor/vuelo_" + (i + 1) + ".png"
+                );
+            }
+
+            // Animación de muerte
+            for (int i = 0; i < spritesMuerte.length; i++) {
+                spritesMuerte[i] = cargarImagen(
+                        "/resources/images/Oso/Muerte/muerte_" + (i + 1) + ".png"
                 );
             }
         }
@@ -168,27 +197,48 @@
             }
         }
 
-        // Método para controlar al oso con el teclado en PanelJuego
+        // Métodos para el PanelJuego
 
-        public void moverManual(int direccion, int anchoPanel) {
-            if (direccion > 0) {
-                estado = Estado.CAMINAR_DERECHA;
-                x += velocidadJuego;
-                if (x > anchoPanel - TAMANO) {
-                    x = anchoPanel - TAMANO;
-                }
-                animarCaminata(4); // Cambia de sprite cada 4 frames para sincronizar con velocidadJuego
-            } else if (direccion < 0) {
-                estado = Estado.CAMINAR_IZQUIERDA;
-                x -= velocidadJuego;
-                if (x < 0) {
-                    x = 0;
-                }
-                animarCaminata(4);
-            } else {
-                fotograma = 0;
-                contador = 0;
+        public void correr() {
+            estado = Estado.CAMINAR_DERECHA;
+            animarCaminata(4);
+        }
+
+        public void agacharse() {
+            estado = Estado.AGACHADO;
+            animarCaminata(6);
+        }
+
+        // Se llama cuando el oso recoge la pluma para empezar desde el despegue
+        public void empezarCondor() {
+            estado = Estado.CONDOR;
+            aleteo = 0;
+        }
+
+        public void volarComoCondor() {
+            estado = Estado.CONDOR;
+            aleteo++;
+        }
+
+        // Empieza la animación de muerte
+        public void morir() {
+            estado = Estado.MUERTO;
+            tiempoMuerte = 0;
+        }
+
+        public void animarMuerte() {
+            tiempoMuerte++;
+        }
+
+        // Caja de colisión: solo el cuerpo, sin el espacio vacío del sprite
+        public Rectangle getBounds() {
+            if (estado == Estado.CONDOR) {
+                return new Rectangle(x + 22, y + 22, 70, 66);
             }
+            if (estado == Estado.AGACHADO) {
+                return new Rectangle(x + 15, y + 50, 80, 36);
+            }
+            return new Rectangle(x + 15, y + 24, 75, 62);
         }
 
         private void animarCaminata() {
@@ -296,8 +346,111 @@
                     }
 
                     break;
+
+                case AGACHADO:
+
+                    // El mismo sprite pero aplastado, con las patas en el suelo
+                    imagenActual = spritesEste[fotograma];
+
+                    if (imagenActual != null) {
+
+                        dibujo.drawImage(
+                                imagenActual,
+                                x - 5,
+                                y + 30,
+                                TAMANO + 10,
+                                72,
+                                null
+                        );
+                    }
+
+                    break;
+
+                case CONDOR:
+
+                    dibujarCondor(dibujo);
+
+                    break;
+
+                case MUERTO:
+
+                    dibujarMuerte(dibujo);
+
+                    break;
             }
 
             dibujo.dispose();
+        }
+
+        // El oso se tambalea y cae; cuando queda en el suelo le salen estrellitas
+        private void dibujarMuerte(Graphics2D dibujo) {
+
+            // Cada cuadro dura 7 frames y el último se queda quieto
+            int cuadro = Math.min(tiempoMuerte / 7, spritesMuerte.length - 1);
+            Image imagenActual = spritesMuerte[cuadro];
+
+            if (imagenActual != null) {
+                dibujo.drawImage(imagenActual, x, y, TAMANO, TAMANO, null);
+            }
+
+            // Estrellitas de mareo girando sobre la cabeza
+            if (cuadro >= spritesMuerte.length - 2) {
+                dibujo.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON
+                );
+
+                int centroX = x + 85;
+                int centroY = y + 52;
+
+                for (int i = 0; i < 3; i++) {
+                    double angulo = tiempoMuerte * 0.12 + i * (Math.PI * 2 / 3);
+                    int ex = centroX + (int) (Math.cos(angulo) * 20);
+                    int ey = centroY + (int) (Math.sin(angulo) * 6);
+                    dibujarEstrella(dibujo, ex, ey);
+                }
+            }
+        }
+
+        private void dibujarEstrella(Graphics2D dibujo, int cx, int cy) {
+            int[] px = new int[10];
+            int[] py = new int[10];
+
+            for (int i = 0; i < 10; i++) {
+                double radio = (i % 2 == 0) ? 6 : 2.5;
+                double angulo = -Math.PI / 2 + i * Math.PI / 5;
+                px[i] = cx + (int) (Math.cos(angulo) * radio);
+                py[i] = cy + (int) (Math.sin(angulo) * radio);
+            }
+
+            dibujo.setColor(new Color(255, 220, 60));
+            dibujo.fillPolygon(px, py, 10);
+            dibujo.setColor(new Color(180, 130, 20));
+            dibujo.drawPolygon(px, py, 10);
+        }
+
+        // Primero se ve el despegue (se agacha y salta) y después aletea sin parar
+        private void dibujarCondor(Graphics2D dibujo) {
+
+            int cuadro = aleteo / 4;
+            Image imagenActual;
+
+            if (cuadro < spritesDespegue.length) {
+                imagenActual = spritesDespegue[cuadro];
+            } else {
+                int indice = (aleteo / 5) % spritesVuelo.length;
+                imagenActual = spritesVuelo[indice];
+            }
+
+            if (imagenActual != null) {
+                dibujo.drawImage(
+                        imagenActual,
+                        x,
+                        y,
+                        TAMANO_CONDOR,
+                        TAMANO_CONDOR,
+                        null
+                );
+            }
         }
     }
